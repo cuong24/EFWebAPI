@@ -1,10 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Web;
 
 namespace EFWebAPI.Models
 {
+  [Table("StudentAddress", Schema = "School")]
   public class StudentAddress
   {
     public int StudentAddressId { get; set; }
@@ -14,6 +17,7 @@ namespace EFWebAPI.Models
     public string Zipcode {get; set;}
     public string State {get; set;}
     public string Country {get; set;}
-    public virtual Student Student {get; set;}
+    [Required]
+    public Student Student {get; set;}
   }
 }

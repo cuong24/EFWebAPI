@@ -9,7 +9,10 @@ namespace EFWebAPI.Models
   [Table("StudentInfo", Schema = "School")]
   public class Student
   {
-    [ForeignKey("StudentAddress")]
+    public Student()
+    {
+      this.Courses = new HashSet<Course>();
+    }
     public int StudentID { get; set; }
     public string StudentName { get; set; }
     public DateTime? DateOfBirth { get; set; }
@@ -18,5 +21,8 @@ namespace EFWebAPI.Models
     public float Weight { get; set; }
 
     public Grade Grade { get; set; }
+    public StudentAddress StudentAddress { get; set; }
+    public ICollection<Course> Courses { get; set; }
+    public Standard Standard { get; set; }
   }
 }
