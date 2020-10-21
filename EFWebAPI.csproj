@@ -166,6 +166,7 @@
     <Compile Include="Controllers\HomeController.cs" />
     <Compile Include="Controllers\StandardController.cs" />
     <Compile Include="Controllers\StudentController.cs" />
+    <Compile Include="Controllers\StudentsController.cs" />
     <Compile Include="Controllers\TeacherController.cs" />
     <Compile Include="Migrations\Configuration.cs" />
     <Compile Include="Models\Course.cs" />

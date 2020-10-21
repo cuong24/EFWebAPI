@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Web.Http;
+using Microsoft.Ajax.Utilities;
 
 namespace EFWebAPI.Controllers
 {
@@ -13,53 +14,128 @@ namespace EFWebAPI.Controllers
     {
             // GET api/values
         [HttpGet]
-        public ICollection<Student> Get()
+        public ICollection<Student> LoadAllStudents()
         {
           using (WebContext ctx = new WebContext())
           {
-            var student = new Student() { StudentName = "Bill" };
-
-            ctx.Students.Add(student);
-            ctx.SaveChanges();
-
             ICollection<Student> stu = ctx.Students.ToList();
-
             return stu;
            }
         }
 
         // GET api/values/5
-        public Student Get(int id)
+        public HttpResponseMessage Get(int id)
         {
-          using (WebContext ctx = new WebContext())
-          {
-            Student stu = ctx.Students.FirstOrDefault(b => b.StudentID == id);
-            return stu;
-          }
+            using (WebContext ctx = new WebContext())
+            {
+                Student stu = findStudentById(id, ctx);
+
+                if (stu != null)
+			    {
+                    return Request.CreateResponse(HttpStatusCode.OK, stu);
+			    }
+				else
+				{
+                    return NotFoundRes(id);
+                }
+            }
         }
 
         // POST api/values
-        public void Post([FromBody] string value)
+        public HttpResponseMessage Post([FromBody] Student stu)
         {
+            if (stu == null)
+			{
+                return MissInfoRes();
+
+            }
+            try 
+            {
+                using (WebContext ctx = new WebContext())
+                {
+                    ctx.Students.Add(stu);
+                    ctx.SaveChanges();
+                    var message = Request.CreateResponse(HttpStatusCode.Created, stu);
+                    message.Headers.Location = new Uri(Request.RequestUri + stu.StudentID.ToString());
+                    return message;
+                }
+            }
+            catch(Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+            }
         }
 
         // PUT api/values/5
-        public void Put(int id, [FromBody] string value)
+        public HttpResponseMessage Put(int id, [FromBody] Student stu)
         {
+            if (stu == null)
+            {
+                return MissInfoRes();
+            }
+            try
+            {
+                using (WebContext ctx = new WebContext())
+                {
+                    var initialStu = findStudentById(id, ctx);
+                    if (initialStu == null)
+					{
+                        return NotFoundRes(id);
+                    }
+                    initialStu = stu;
+                    ctx.SaveChanges();
+                    var message = Request.CreateResponse(HttpStatusCode.Created, stu);
+                    message.Headers.Location = new Uri(Request.RequestUri + stu.StudentID.ToString());
+                    return message;
+                }
+            }
+            catch (Exception ex)
+            {
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+            }
         }
 
         // DELETE api/values/5
-        public string Delete(int id)
+        public HttpResponseMessage Delete(int id)
         {
-          using (WebContext ctx = new WebContext())
-          {
-            var student = ctx.Students.FirstOrDefault(s => s.StudentID == id);
+			try
+			{
+                using (WebContext ctx = new WebContext())
+                {
+                    var stu = findStudentById(id, ctx);
+                    if (stu != null)
+                    {
+                        ctx.Students.Remove(stu);
+                        ctx.SaveChanges();
+                        return Request.CreateResponse(HttpStatusCode.OK);
+                    }
+                    else
+                    {
+                        return NotFoundRes(id);
+                    }
 
-            ctx.Students.Remove(student);
-            ctx.SaveChanges();
+                }
+            }
+			catch(Exception ex)
+			{
+                return Request.CreateErrorResponse(HttpStatusCode.BadRequest, ex);
+			}
+        }
 
-            return "Success";
-          }
+        private HttpResponseMessage NotFoundRes (int id)
+		{
+            return Request.CreateErrorResponse(HttpStatusCode.NotFound, "No student with id" + id.ToString() + " not found");
+        }
+
+        private HttpResponseMessage MissInfoRes()
+		{
+            return Request.CreateErrorResponse(HttpStatusCode.BadRequest, "Please fill all the require info");
+		}
+
+        private Student findStudentById(int id, WebContext ctx)
+		{
+            var stu = ctx.Students.FirstOrDefault(s => s.StudentID == id);
+            return stu;
         }
     }
 }
